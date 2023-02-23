@@ -1,0 +1,24 @@
+{
+  "name": "match-javascript",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "ts-check": "tsc --noEmit",
+    "test": "jest --watchAll",
+    "test:c": "jest --coverage",
+    "test:n": "jest",
+    "prettier:c": "prettier -c src/",
+    "prettier:w": "prettier -w src/",
+    "eslint": "eslint -c ./.eslintrc.json \"src/**/{*.ts,*.tsx,*.js,*.jsx}\""
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "jest": "^29.4.3"
+  }
+}
