@@ -1,29 +1,87 @@
+type GetFunctionResultType<T> = T extends (...arg: any) => infer ResultType ? ResultType : T;
+
+type GetFunctionArgumentType<T> = T extends (...arg: infer Params) => any ? Params : T;
+
+type TargetSuper = Record<string, None | ((...args: any) => any)>;
+
 export const none = Symbol();
 
 export type None = typeof none;
 
-type GetFunctionResultType<T> = T extends (...arg: infer Params) => infer ResultType
-  ? ResultType
-  : undefined;
+export type MatchFunctionParamsType<
+  Target extends TargetSuper,
+  ResultType extends unknown = unknown,
+> =
+  | {
+      [key in keyof Target]: (args: GetFunctionResultType<Target[key]>) => ResultType;
+    }
+  | ({
+      [key in keyof Target]?: (args: GetFunctionResultType<Target[key]>) => ResultType;
+    } & {
+      _: (args: any) => ResultType;
+    });
 
-type GetFunctionArgumentType<T> = T extends (...arg: infer Params) => infer ResultType ? Params : T;
+export type MatchFunctionType<Target extends TargetSuper, T extends unknown = unknown> = <
+  ResultType extends unknown = T,
+>(
+  param: MatchFunctionParamsType<Target, ResultType>,
+) => ResultType;
 
-export type DefineMatchObjectReturnType<
-  Target extends Record<Readonly<string>, None | ((...args: Array<unknown>) => unknown)>,
-> = Target extends any
+export type DefineMatchObjectReturnType<Target extends TargetSuper> = Target extends any
   ? {
-      [key in keyof Target]: {
-        match: <T>(
-          param:
-            | {
-                [key in keyof Target]: (args: GetFunctionResultType<Target[key]>) => T;
-              }
-            | {
-                [key in keyof (Target & { _: unknown })]: (
-                  args: GetFunctionResultType<Target[key]>,
-                ) => T;
-              },
-        ) => T;
-      };
+      [key in keyof Target]: Target[key] extends None
+        ? {
+            match: MatchFunctionType<Target>;
+          }
+        : (...args: GetFunctionArgumentType<Target[key]>) => {
+            match: MatchFunctionType<Target>;
+          };
     }
   : never;
+
+export const defineMatchObject = <Target extends TargetSuper>(
+  param: Target,
+): DefineMatchObjectReturnType<Target> => {
+  const matchObj: any = {};
+
+  Object.keys(param).forEach((key) => {
+    const value = param[key];
+
+    if (isNone(value)) {
+      matchObj[key] = {
+        match: createMatchFunction<Target>(key),
+      };
+    } else {
+      matchObj[key] = (...args: any) => {
+        return {
+          match: createMatchFunction<Target>(key, value(...args)),
+        };
+      };
+    }
+  });
+
+  return matchObj;
+};
+
+const isNone = (val: None | ((...args: any) => any)): val is None => {
+  return typeof val !== 'function';
+};
+
+const createMatchFunction = <Target extends TargetSuper>(
+  key: string,
+  value?: any,
+): MatchFunctionType<Target> => {
+  return function (cases) {
+    const matchingHandle = cases[key];
+
+    if (typeof matchingHandle === 'function') {
+      return matchingHandle(value);
+    }
+
+    if (typeof cases['_'] === 'function') {
+      return cases['_'](value);
+    }
+
+    throw new Error(`Match did not handle key: '${key}'`);
+  };
+};

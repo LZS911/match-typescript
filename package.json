@@ -1,24 +1,40 @@
 {
-  "name": "match-javascript",
+  "name": "rust-like-match",
   "version": "1.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "src/index.d.ts",
+  "author": "Lzs911 <https://github.com/LZS911>",
+  "repository": {
+    "url": "https://github.com/LZS911/rust-like-match",
+    "type": "github"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc && cp src/index.ts dist/index.ts",
     "ts-check": "tsc --noEmit",
     "test": "jest --watchAll",
     "test:c": "jest --coverage",
-    "test:n": "jest",
-    "prettier:c": "prettier -c src/",
-    "prettier:w": "prettier -w src/",
-    "eslint": "eslint -c ./.eslintrc.json \"src/**/{*.ts,*.tsx,*.js,*.jsx}\""
+    "test:n": "jest"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.21.0",
     "@types/jest": "^29.4.0",
-    "typescript": "^4.9.5"
-  },
-  "dependencies": {
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.9.5",
     "jest": "^29.4.3"
-  }
+  },
+  "keywords": [
+    "rust",
+    "typescript",
+    "javascript",
+    "match",
+    "matching",
+    "switch",
+    "pattern",
+    "enum",
+    "tagged",
+    "union",
+    "state",
+    "machine"
+  ]
 }

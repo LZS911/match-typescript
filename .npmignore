@@ -7,5 +7,7 @@ tsconfig.json
 vite.config.ts
 yarn.lock
 .eslintrc.js
-src/example
+src
 .vscode
+coverage
+jest.config.js
