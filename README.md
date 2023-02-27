@@ -1,3 +1,5 @@
+# Rust-Like-Match
+
 ## 简介
 
 `rust-like-match` 提供了在 javascript 或 typescript 中使用 `Rust-Like` 的模式匹配. 并且在 typescript 环境下, `rust-like-match` 能够利用类型校验来实现 rust 中 `match` 的穷尽匹配以及提供优秀的类型提示.

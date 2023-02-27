@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "license": "MIT",
   "main": "dist/index.js",
-  "types": "src/index.d.ts",
+  "types": "dist/index.d.ts",
   "author": "Lzs911 <https://github.com/LZS911>",
   "repository": {
     "url": "https://github.com/LZS911/rust-like-match",
