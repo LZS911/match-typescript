@@ -4,6 +4,8 @@ type GetFunctionArgumentType<T> = T extends (...arg: infer Params) => any ? Para
 
 type TargetSuper = Record<string, None | ((...args: any) => any)>;
 
+type Values<T> = T[keyof T];
+
 export const none = Symbol();
 
 export type None = typeof none;
@@ -38,6 +40,10 @@ export type DefineMatchObjectReturnType<Target extends TargetSuper> = Target ext
           };
     }
   : never;
+
+export type MatchOjectType<Target extends TargetSuper> = Values<
+  GetFunctionResultType<DefineMatchObjectReturnType<Target>>
+>;
 
 export const defineMatchObject = <Target extends TargetSuper>(
   param: Target,
