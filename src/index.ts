@@ -41,7 +41,7 @@ export type DefineMatchObjectReturnType<Target extends TargetSuper> = Target ext
     }
   : never;
 
-export type MatchOjectType<Target extends TargetSuper> = Values<
+export type MatchObjectType<Target extends TargetSuper> = Values<
   GetFunctionResultType<DefineMatchObjectReturnType<Target>>
 >;
 
