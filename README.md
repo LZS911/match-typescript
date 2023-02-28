@@ -209,6 +209,55 @@ switch (msg.key) {
        });
      ```
 
+## 拓展
+
+1. 在 React 项目中, 怎样在能保证支持类型校验的同时将其设置为一个 `state`?
+
+   `rust-like-match` 现支持导出类型 `MatchObjectType`. 具体使用方式如下:
+
+   ```tsx
+    import { defineMatchObject, none, MatchObjectType } from 'rust-like-match';
+ 
+    const statusEnum = {
+       Loading: none,
+       Success: (data?: Item) => data,
+       Error: (err: string) => Error,
+    } as const;
+
+    const RequestStatus = defineMatchObject(statusEnum);
+
+    const [status, setStatus] = useState<MatchObjectType<typeof statusEnum>>();
+
+    useEffect(() => {
+      setStatus(RequestStatus.Loading);
+      api
+        .getData()
+        .then((res) => {
+          if (res.data.code === ResponseCode.SUCCESS) {
+            setStatus(RequestStatus.Success(res.data.data));
+          }
+        })
+        .catch((err) => {
+          setStatus(
+            RequestStatus.Error(err?.toString() ?? "unknown error"
+          );
+        });
+    }, [projectName]);
+
+
+    return (
+      //...
+      {
+        status?.match({
+          Loading: () => <Spin />,
+          Success: (data) => renderData(data)
+          Error: (err) => renderError(err)
+        })
+      }
+      //...
+    )
+   ```
+
 ## 未来将会支持的功能
 
 1. 实现多模式匹配, 预计会以 `"Quit | Start": () => other()` 的形式来实现.

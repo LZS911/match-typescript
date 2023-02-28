@@ -1,4 +1,4 @@
-import { defineMatchObject, none } from '.';
+import { defineMatchObject, MatchObjectType, none } from '.';
 
 describe('test defineMatchObject', () => {
   const Status = defineMatchObject({
@@ -109,5 +109,30 @@ describe('test defineMatchObject', () => {
         Success: (message: any) => message,
       });
     }).toThrowError("Match did not handle key: 'error'");
+  });
+
+  it('MatchObjectType', () => {
+    const obj1 = {
+      Quit: none,
+      Move: (x: number, y: number) => ({ x, y }),
+      Write: (msg: string) => msg,
+      ChangeColor: (r: number, g: number, b: number) => ({ r, g, b }),
+    } as const;
+
+    const Message1 = defineMatchObject(obj1);
+
+    // Type derivation should be normal
+    let msg1: MatchObjectType<typeof obj1>;
+
+    const obj2 = {
+      Move: (x: number, y: number) => ({ x, y }),
+      Write: (msg: string) => msg,
+      ChangeColor: (r: number, g: number, b: number) => ({ r, g, b }),
+    } as const;
+
+    const Message2 = defineMatchObject(obj2);
+
+    // Type derivation should be normal
+    let msg2: MatchObjectType<typeof obj2>;
   });
 });

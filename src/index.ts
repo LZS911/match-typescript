@@ -4,7 +4,19 @@ type GetFunctionArgumentType<T> = T extends (...arg: infer Params) => any ? Para
 
 type TargetSuper = Record<string, None | ((...args: any) => any)>;
 
-type Values<T> = T[keyof T];
+type Values<T> = T extends any ? T[keyof T] : never;
+
+type UnionToIntersection<U> = (U extends U ? (x: U) => unknown : never) extends (
+  x: infer R,
+) => unknown
+  ? R
+  : never;
+
+type UnionToTuple<T> = UnionToIntersection<
+  T extends any ? () => T : never
+> extends () => infer ReturnType
+  ? [...UnionToTuple<Exclude<T, ReturnType>>, ReturnType]
+  : [];
 
 export const none = Symbol();
 
@@ -41,9 +53,11 @@ export type DefineMatchObjectReturnType<Target extends TargetSuper> = Target ext
     }
   : never;
 
-export type MatchObjectType<Target extends TargetSuper> = Values<
-  GetFunctionResultType<DefineMatchObjectReturnType<Target>>
->;
+export type MatchObjectType<Target extends TargetSuper> = Target extends any
+  ? GetFunctionResultType<
+      UnionToTuple<Values<GetFunctionResultType<DefineMatchObjectReturnType<Target>>>>[0]
+    >
+  : never;
 
 export const defineMatchObject = <Target extends TargetSuper>(
   param: Target,
