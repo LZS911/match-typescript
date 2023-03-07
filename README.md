@@ -239,10 +239,10 @@ switch (msg.key) {
         })
         .catch((err) => {
           setStatus(
-            RequestStatus.Error(err?.toString() ?? "unknown error"
+            RequestStatus.Error(err?.toString() ?? "unknown error")
           );
         });
-    }, [projectName]);
+    }, []);
 
 
     return (
@@ -250,13 +250,124 @@ switch (msg.key) {
       {
         status?.match({
           Loading: () => <Spin />,
-          Success: (data) => renderData(data)
+          Success: (data) => renderData(data),
           Error: (err) => renderError(err)
         })
       }
       //...
     )
    ```
+
+2. 新增函数 `baseTypeMatch`, 支持对基础类型数据进行模式匹配. 具体使用方式如下:
+    1. number 类型
+
+        ```typescript
+          const value1 = baseTypeMatch(1, {
+            //val type is 1
+            1: (val) => val + 2,
+            2: (val) => val + 3,
+            _: (val) => val,
+          });
+          expect(value1).toBe(3);
+      
+          const value2 = baseTypeMatch(value1, {
+            //val type is number
+            1: (val) => val + 2,
+            2: (val) => val + 3,
+            '3 | 4': (val) => val + 1,
+            _: (val) => val,
+          });
+      
+          expect(value2).toBe(4);
+      
+          const cases: BaseTypeMatchPatternType<number, number> = {
+            '1 | 2': (val) => val + 1,
+            3: (val) => val + 1,
+            _: (val) => val + 1,
+          };
+          const value3 = baseTypeMatch(value2, cases);
+          expect(value3).toBe(5);
+        ```
+
+    2. string 类型
+
+        ```typescript
+         const value1 = baseTypeMatch('foo', {
+          //val type is foo
+          foo: (val) => val + 2,
+          bar: (val) => val + 3,
+          _: (val) => val,
+          });
+      
+          expect(value1).toBe('foo2');
+      
+          const value2 = baseTypeMatch(value1, {
+            //val type is string
+            foo: (val) => val + 2,
+            bar: (val) => val + 3,
+            'foo2 | foo1': (val) => val + 1,
+            _: (val) => val,
+          });
+      
+          expect(value2).toBe('foo21');
+      
+          const cases: BaseTypeMatchPatternType<string, string> = {
+            '1 | 2': (val) => val + 1,
+            bar: (val) => val + 1,
+            _: (val) => val + 1,
+          };
+          const value3 = baseTypeMatch(value2, cases);
+          expect(value3).toBe('foo211');
+        ```
+
+    3. boolean 类型
+
+       ```typescript
+          const value1 = baseTypeMatch<number>(false, {
+            //val type is false
+             false: (val) => (val ? 1 : 2),
+             true: (val) => (val ? 1 : 2),
+           });
+
+           expect(value1).toBe(2);
+       
+           const value2 = baseTypeMatch(value1, {
+             //val type is number
+             2: (val) => true,
+             _: (val) => false,
+           });
+       
+           expect(value2).toBeTruthy();
+       
+           const cases: BaseTypeMatchPatternType<boolean, string> = {
+             'true | false': (val) => 'hello',
+             bar: (val) => 'rust',
+             _: (val) => 'javascript',
+           };
+           const value3 = baseTypeMatch(value2, cases);
+           expect(value3).toBe('hello');
+       ```
+
+    4. symbol 类型
+
+       ```typescript
+          const symbol = Symbol();
+          const value1 = baseTypeMatch<number | symbol>(Symbol(), {
+            foo: () => 1,
+            bar: () => 2,
+            _: () => symbol,
+          });
+          expect(value1).toBe(symbol);
+      
+          const cases: BaseTypeMatchPatternType<symbol, string | boolean | number | symbol> = {
+            [value1 as symbol]: (val) => false,
+            'a | b': (val) => 1,
+            1: (val) => val,
+            _: (val) => 'hello',
+          };
+          const value2 = baseTypeMatch(value1 as symbol, cases);
+          expect(value2).toBeFalsy();
+       ```
 
 ## 未来将会支持的功能
 

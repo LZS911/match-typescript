@@ -2,7 +2,9 @@ type GetFunctionResultType<T> = T extends (...arg: any) => infer ResultType ? Re
 
 type GetFunctionArgumentType<T> = T extends (...arg: infer Params) => any ? Params : T;
 
-type TargetSuper = Record<string, None | ((...args: any) => any)>;
+type TargetSuper = {
+  [key in BaseType]: None | ((...arg: any) => any);
+};
 
 type Values<T> = T extends any ? T[keyof T] : never;
 
@@ -59,12 +61,17 @@ export type MatchObjectType<Target extends TargetSuper> = Target extends any
     >
   : never;
 
+export type BaseType = string | number | symbol;
+export type BaseTypeMatchPatternType<ArgType, ResultType> = {
+  [key in BaseType]: (arg: ArgType) => ResultType;
+};
+
 export const defineMatchObject = <Target extends TargetSuper>(
   param: Target,
 ): DefineMatchObjectReturnType<Target> => {
   const matchObj: any = {};
 
-  Object.keys(param).forEach((key) => {
+  Reflect.ownKeys(param).forEach((key: string | number | symbol) => {
     const value = param[key];
 
     if (isNone(value)) {
@@ -83,17 +90,38 @@ export const defineMatchObject = <Target extends TargetSuper>(
   return matchObj;
 };
 
+export const baseTypeMatch = <
+  ResultType extends unknown,
+  TargetType extends BaseType | boolean = BaseType | boolean,
+>(
+  target: TargetType,
+  cases: BaseTypeMatchPatternType<TargetType, ResultType>,
+): ResultType => {
+  return createMatchFunction(target, target)(cases);
+};
+
 const isNone = (val: None | ((...args: any) => any)): val is None => {
   return typeof val !== 'function';
 };
 
 const createMatchFunction = <Target extends TargetSuper>(
-  key: string,
+  target: BaseType | boolean,
   value?: any,
 ): MatchFunctionType<Target> => {
   return function (cases) {
-    const matchingHandle = cases[key];
+    let matchingHandle;
 
+    if (typeof target === 'symbol') {
+      matchingHandle = cases[target];
+    } else {
+      let key = '';
+      key = target.toString();
+      for (let i in cases) {
+        if (i.split(' | ').includes(key)) {
+          matchingHandle = cases[i];
+        }
+      }
+    }
     if (typeof matchingHandle === 'function') {
       return matchingHandle(value);
     }
@@ -102,6 +130,6 @@ const createMatchFunction = <Target extends TargetSuper>(
       return cases['_'](value);
     }
 
-    throw new Error(`Match did not handle key: '${key}'`);
+    throw new Error(`Match did not handle key: '${String(target)}'`);
   };
 };
